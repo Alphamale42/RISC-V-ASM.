@@ -1,0 +1,106 @@
+Exercise B:
+A.L. Code:
+# int *end s1
+# int sum s2
+# int max s3 (to be used when students enhance the program)
+.text
+.globl main
+main:
+la s0, abc # p = abc
+addi s1, s0, 24 # end = p + 6
+add s2, zero, zero # sum = 0
+lw s3, (s0) # max = p[0]
+L1:
+beq s0, s1, L2 # if (p == end) goto L2
+lw t0, (s0) # t0 = *p
+add s2, s2, t0 # sum += t0
+addi s0, s0, 4 # p++
+bge t0, s3, L3 # if (p[i] >= p[0]) goto L3
+j L1
+L3:
+add s3, t0, zero
+j L1
+L2:
+add a0, s3, zero # return value from main = 0
+jr ra
+Output:
+
+Exercise C:
+A.L. Code:
+# stub1.asm
+# ENCM 369 Winter 2023 Lab 2
+# This program has complete start-up and clean-up code, and a "stub"
+# main function.
+# BEGINNING of start-up & clean-up code. Do NOT edit this code.
+.data
+exit_msg_1:
+.asciz "***About to exit. main returned "
+exit_msg_2:
+.asciz ".***\n"
+main_rv:
+.word 0
+# adjust sp, then call main
+andi sp, sp, -32 # round sp down to multiple of 32
+jal main
+# when main is done, print its return value, then halt the program
+sw a0, main_rv, t0
+la a0, exit_msg_1
+li a7, 4
+
+
+ecall
+lw a0, main_rv
+li a7, 1
+ecall
+la a0, exit_msg_2
+li a7, 4
+ecall
+ lw a0, main_rv
+addi a7, zero, 93 # call for program exit with exit status that is in a0
+ecall
+# END of start-up & clean-up code.
+# Below is the stub for main. Edit it to give main the desired behaviour.
+.globl alpha
+alpha: .word 0xb1, 0xe1, 0x91, 0xc1, 0x81, 0xa1, 0xf1, 0xd1
+.globl beta
+beta: .word 0x0, 0x10, 0x20, 0x30, 0x40, 0x50, 0x60, 0x70
+.text
+.data
+.text
+.globl main
+main:
+la s0, alpha # s0 = &alpha[0]
+lw t0, 0(s0) # t0 = *p
+addi s1, s0, 32 #Note we have 32 here since we're moving our pointer 8 element,
+so 8 * 4 = 32.s1 = guard = p + 8
+add s2, t0, zero # Let min (s2) = *p (t0)
+P a g e | 7
+forloop:
+beq s1, s0, donefor #if (p==guard) goto donefor
+lw t0, (s0) #to = *p;
+bge t0, s2, iterover # if (*p >= min) goto iterover; i.e., skip if block.
+add s2, zero, t0 # min = *p
+iterover:
+addi s0, s0, 4 # p++;
+j forloop # goto forloop after iterating p++
+donefor:
+add s3, zero, zero # j = 0
+addi s4, zero, 7 # k = 7 ; corrected here.
+la s5, alpha # s5 = alpha
+la s6, beta # s6 = beta
+addi t0, zero, 8 # t0 = 8
+whileloop:
+bge s3, t0, doneall
+slli t1, s3, 2 # t1 = s3(j) * 4
+slli t2, s4, 2 # t2 = s4(k) * 4
+add t3, s5, t1 # t3 = alpha[i]
+add t4, s6, t2 # t4 = beta[k]
+lw t5, (t4) # t5 = *t4
+sw t5, (t3) # alpha[j] = beta[k]
+addi s3, s3, 1 # j++;
+addi s4, s4, -1 # k--;
+j whileloop # go back to top of loop
+
+doneall:
+li a0, 0 # return value from main = 0
+jr ra
